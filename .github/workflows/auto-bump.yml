@@ -10,15 +10,13 @@ on:
       - "tests/**"
       - "docs/**"
 
-# Only runs on direct pushes to main - NEVER on PRs
-# Secrets are NOT available to fork PRs by GitHub policy
 permissions:
   contents: write
+  actions: write
 
 jobs:
   bump:
     runs-on: ubuntu-latest
-    # Extra guard: only run on the main repo, not forks
     if: |
       github.repository == 'matanbaruch/amplifi-alien-exporter' &&
       !contains(github.event.head_commit.message, '[skip ci]') &&
@@ -50,7 +48,7 @@ jobs:
           echo "OLD_VERSION=${CURRENT}" >> $GITHUB_OUTPUT
           echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_OUTPUT
 
-      - name: Commit version bump
+      - name: Commit and push version bump
         run: |
           git add amplifi_exporter.py
           git commit -m "chore: bump version ${{ steps.bump.outputs.OLD_VERSION }} → ${{ steps.bump.outputs.NEW_VERSION }} [skip ci]"
@@ -60,3 +58,12 @@ jobs:
         run: |
           git tag "v${{ steps.bump.outputs.NEW_VERSION }}"
           git push origin "v${{ steps.bump.outputs.NEW_VERSION }}"
+
+      - name: Trigger release workflow
+        run: |
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GH_PAT }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/matanbaruch/amplifi-alien-exporter/actions/workflows/release.yml/dispatches \
+            -d "{\"ref\": \"v${{ steps.bump.outputs.NEW_VERSION }}\", \"inputs\": {\"version\": \"${{ steps.bump.outputs.NEW_VERSION }}\"}}"
+          echo "Release workflow dispatched for v${{ steps.bump.outputs.NEW_VERSION }}"
