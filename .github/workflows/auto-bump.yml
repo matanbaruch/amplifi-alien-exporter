@@ -8,6 +8,7 @@ on:
       - "*.md"
       - ".github/workflows/**"
       - "tests/**"
+      - "docs/**"
 
 permissions:
   contents: write
@@ -15,13 +16,12 @@ permissions:
 jobs:
   bump:
     runs-on: ubuntu-latest
-    # Skip if this push was already a version bump commit
     if: "!contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, 'chore: bump version')"
 
     steps:
       - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_PAT }}
           fetch-depth: 0
 
       - name: Configure git
@@ -32,23 +32,15 @@ jobs:
       - name: Read and bump version
         id: bump
         run: |
-          # Extract current version from amplifi_exporter.py
           CURRENT=$(grep -oP 'VERSION\s*=\s*"\K[^"]+' amplifi_exporter.py)
           echo "Current version: $CURRENT"
-
-          # Split into parts
           MAJOR=$(echo $CURRENT | cut -d. -f1)
           MINOR=$(echo $CURRENT | cut -d. -f2)
           PATCH=$(echo $CURRENT | cut -d. -f3)
-
-          # Bump patch
           NEW_PATCH=$((PATCH + 1))
           NEW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}"
           echo "New version: $NEW_VERSION"
-
-          # Update the file
           sed -i "s/VERSION = \"${CURRENT}\"/VERSION = \"${NEW_VERSION}\"/" amplifi_exporter.py
-
           echo "OLD_VERSION=${CURRENT}" >> $GITHUB_OUTPUT
           echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_OUTPUT
 
