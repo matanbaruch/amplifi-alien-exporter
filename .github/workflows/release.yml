@@ -168,10 +168,11 @@ jobs:
 
             ## Python Package
 
+            Download the `.whl` or `.tar.gz` file from the release assets above and install:
+
             ```bash
-            # Install from GitHub Packages
-            pip install amplifi-alien-exporter==${{ steps.version.outputs.VERSION }} \
-              --index-url https://pypi.pkg.github.com/matanbaruch/simple/
+            # Download and install from GitHub Release
+            pip install amplifi_alien_exporter-${{ steps.version.outputs.VERSION }}-py3-none-any.whl
             ```
 
   publish-pypi:
@@ -212,12 +213,9 @@ jobs:
       - name: Build package
         run: python -m build
 
-      - name: Publish to GitHub Packages
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          python -m twine upload \
-            --repository-url https://pypi.pkg.github.com/matanbaruch/ \
-            dist/*
+      - name: Upload package to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.VERSION }}
+          files: dist/*
 
