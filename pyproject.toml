@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "amplifi-alien-exporter"
+version = "1.0.2"
+description = "A Prometheus exporter for AmpliFi Alien routers"
+readme = "README.md"
+requires-python = ">=3.7"
+license = {text = "MIT"}
+authors = [
+    {name = "Matan Baruch", email = "matan@example.com"}
+]
+keywords = ["prometheus", "exporter", "amplifi", "alien", "ubiquiti", "monitoring"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: System :: Monitoring",
+    "Topic :: System :: Networking :: Monitoring",
+]
+
+[project.urls]
+Homepage = "https://github.com/matanbaruch/amplifi-alien-exporter"
+Repository = "https://github.com/matanbaruch/amplifi-alien-exporter"
+Issues = "https://github.com/matanbaruch/amplifi-alien-exporter/issues"
+
+[project.scripts]
+amplifi-exporter = "amplifi_exporter:main"
+
+[tool.setuptools]
+py-modules = ["amplifi_exporter"]
