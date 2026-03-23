@@ -1,0 +1,27 @@
+version: "3.8"
+
+# Example docker-compose.yml
+# Copy this file and fill in your AMPLIFI_PASSWORD.
+# DO NOT commit your password to version control.
+
+services:
+  amplifi-exporter:
+    image: ghcr.io/matanbaruch/amplifi-alien-exporter:latest
+    container_name: amplifi-exporter
+    restart: unless-stopped
+    ports:
+      - "9877:9877"
+    environment:
+      AMPLIFI_ROUTER_IP: "192.168.1.1"
+      AMPLIFI_PASSWORD: "${AMPLIFI_PASSWORD}"   # Set via .env file or shell export
+      SCRAPE_INTERVAL: "15"
+      LISTEN_PORT: "9877"
+      LISTEN_ADDR: "0.0.0.0"
+
+  # Optional: Add Prometheus + Grafana
+  # prometheus:
+  #   image: prom/prometheus
+  #   volumes:
+  #     - ./prometheus.yml:/etc/prometheus/prometheus.yml
+  #   ports:
+  #     - "9090:9090"

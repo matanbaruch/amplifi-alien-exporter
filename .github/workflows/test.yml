@@ -1,0 +1,36 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run unit tests
+        env:
+          AMPLIFI_PASSWORD: "test-password-for-ci"
+          AMPLIFI_ROUTER_IP: "192.168.1.1"
+        run: python -m unittest discover tests/ -v
+
+      - name: Verify no sensitive defaults in source
+        run: |
+          if grep -r "192.168.149.1\|0503338385" amplifi_exporter.py; then
+            echo "ERROR: Sensitive IP or password found in source!"
+            exit 1
+          fi
+          echo "OK: No sensitive defaults found."
