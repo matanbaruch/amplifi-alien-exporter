@@ -10,13 +10,19 @@ on:
       - "tests/**"
       - "docs/**"
 
+# Only runs on direct pushes to main - NEVER on PRs
+# Secrets are NOT available to fork PRs by GitHub policy
 permissions:
   contents: write
 
 jobs:
   bump:
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, 'chore: bump version')"
+    # Extra guard: only run on the main repo, not forks
+    if: |
+      github.repository == 'matanbaruch/amplifi-alien-exporter' &&
+      !contains(github.event.head_commit.message, '[skip ci]') &&
+      !contains(github.event.head_commit.message, 'chore: bump version')
 
     steps:
       - uses: actions/checkout@v4

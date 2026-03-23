@@ -5,6 +5,11 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+    # Use pull_request (NOT pull_request_target) - fork PRs never get secrets
+
+# Minimal permissions - read only
+permissions:
+  contents: read
 
 jobs:
   test:
@@ -15,22 +20,20 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        # No token needed - public repo read is fine with GITHUB_TOKEN default
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Run unit tests
-        env:
-          AMPLIFI_PASSWORD: "test-password-for-ci"
-          AMPLIFI_ROUTER_IP: "192.168.1.1"
+      - name: Run tests
         run: python -m unittest discover tests/ -v
 
-      - name: Verify no sensitive defaults in source
+      - name: Verify no sensitive defaults in code
         run: |
-          if grep -r "192.168.149.1\|0503338385" amplifi_exporter.py; then
-            echo "ERROR: Sensitive IP or password found in source!"
+          if grep -r "192\.168\.149\.1\|0503338385" amplifi_exporter.py; then
+            echo "ERROR: Sensitive data found in source!"
             exit 1
           fi
-          echo "OK: No sensitive defaults found."
+          echo "Clean - no sensitive defaults found"
