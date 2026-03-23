@@ -14,6 +14,10 @@ permissions:
   contents: write
   actions: write
 
+concurrency:
+  group: version-bump
+  cancel-in-progress: false
+
 jobs:
   bump:
     runs-on: ubuntu-latest
