@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AmpliFi Alien Exporter</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 860px; margin: 0 auto; padding: 2rem; background: #0d1117; color: #e6edf3; }
+    h1 { font-size: 2rem; border-bottom: 1px solid #30363d; padding-bottom: .5rem; }
+    h2 { font-size: 1.3rem; color: #79c0ff; margin-top: 2rem; }
+    code { background: #161b22; padding: .2em .4em; border-radius: 4px; font-size: .9em; }
+    pre { background: #161b22; padding: 1rem; border-radius: 8px; overflow-x: auto; border: 1px solid #30363d; }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+    th, td { padding: .6rem 1rem; border: 1px solid #30363d; text-align: left; }
+    th { background: #161b22; color: #79c0ff; }
+    a { color: #58a6ff; }
+    .badge { display: inline-block; margin-right: .5rem; }
+    .hero { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 1.5rem; margin: 1rem 0; }
+  </style>
+</head>
+<body>
+  <h1>📡 AmpliFi Alien Exporter</h1>
+  <p>
+    <a href="https://github.com/matanbaruch/amplifi-alien-exporter/releases"><img src="https://img.shields.io/github/v/release/matanbaruch/amplifi-alien-exporter" alt="release"></a>
+    <a href="https://github.com/matanbaruch/amplifi-alien-exporter/actions"><img src="https://img.shields.io/github/actions/workflow/status/matanbaruch/amplifi-alien-exporter/test.yml?label=tests" alt="tests"></a>
+    <a href="https://github.com/matanbaruch/amplifi-alien-exporter/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="license"></a>
+    <img src="https://img.shields.io/badge/prometheus-exporter-orange" alt="prometheus">
+  </p>
+
+  <div class="hero">
+    <p>A Prometheus exporter for <strong>AmpliFi Alien</strong> routers. Exposes detailed WiFi client metrics, router info, ethernet port stats, and more — all scraped directly from the router's local API.</p>
+  </div>
+
+  <h2>🚀 Quick Start</h2>
+  <pre><code>docker run -d \
+  -e AMPLIFI_PASSWORD=your_router_password \
+  -e AMPLIFI_ROUTER_IP=192.168.1.1 \
+  -p 9877:9877 \
+  ghcr.io/matanbaruch/amplifi-alien-exporter:latest</code></pre>
+
+  <h2>⚙️ Environment Variables</h2>
+  <table>
+    <tr><th>Variable</th><th>Default</th><th>Required</th><th>Description</th></tr>
+    <tr><td><code>AMPLIFI_ROUTER_IP</code></td><td>192.168.1.1</td><td>No</td><td>Router IP address</td></tr>
+    <tr><td><code>AMPLIFI_PASSWORD</code></td><td>—</td><td><strong>Yes</strong></td><td>Router admin password</td></tr>
+    <tr><td><code>SCRAPE_INTERVAL</code></td><td>15</td><td>No</td><td>Scrape interval in seconds</td></tr>
+    <tr><td><code>LISTEN_PORT</code></td><td>9877</td><td>No</td><td>HTTP port to expose metrics on</td></tr>
+    <tr><td><code>LISTEN_ADDR</code></td><td>0.0.0.0</td><td>No</td><td>Listen address</td></tr>
+  </table>
+
+  <h2>📊 Metrics</h2>
+  <table>
+    <tr><th>Metric</th><th>Type</th><th>Description</th></tr>
+    <tr><td><code>amplifi_router_uptime_seconds</code></td><td>gauge</td><td>Router uptime</td></tr>
+    <tr><td><code>amplifi_router_info</code></td><td>gauge</td><td>Router metadata labels</td></tr>
+    <tr><td><code>amplifi_wifi_client_happiness_score</code></td><td>gauge</td><td>Client happiness score (0-100)</td></tr>
+    <tr><td><code>amplifi_wifi_client_signal_quality</code></td><td>gauge</td><td>Signal quality (0-100)</td></tr>
+    <tr><td><code>amplifi_wifi_client_rx_bitrate_kbps</code></td><td>gauge</td><td>RX bitrate (kbps)</td></tr>
+    <tr><td><code>amplifi_wifi_client_tx_bitrate_kbps</code></td><td>gauge</td><td>TX bitrate (kbps)</td></tr>
+    <tr><td><code>amplifi_client_connected</code></td><td>gauge</td><td>Connected client info</td></tr>
+    <tr><td><code>amplifi_clients_total</code></td><td>gauge</td><td>Total connected clients</td></tr>
+    <tr><td><code>amplifi_wifi_clients_total</code></td><td>gauge</td><td>Total WiFi clients</td></tr>
+    <tr><td><code>amplifi_ethernet_clients_total</code></td><td>gauge</td><td>Total Ethernet clients</td></tr>
+    <tr><td><code>amplifi_ethernet_port_link</code></td><td>gauge</td><td>Port link status (0/1)</td></tr>
+    <tr><td><code>amplifi_scrape_success</code></td><td>gauge</td><td>1 if scrape succeeded</td></tr>
+    <tr><td><code>amplifi_scrape_duration_seconds</code></td><td>gauge</td><td>Scrape duration</td></tr>
+  </table>
+
+  <h2>🔗 Links</h2>
+  <ul>
+    <li><a href="https://github.com/matanbaruch/amplifi-alien-exporter">GitHub Repository</a></li>
+    <li><a href="https://github.com/matanbaruch/amplifi-alien-exporter/releases">Releases</a></li>
+    <li><a href="https://ghcr.io/matanbaruch/amplifi-alien-exporter">Docker Image (GHCR)</a></li>
+  </ul>
+
+  <footer style="margin-top:3rem; color:#6e7681; font-size:.85rem;">
+    MIT License · Made by <a href="https://github.com/matanbaruch">Matan Baruch</a>
+  </footer>
+</body>
+</html>
