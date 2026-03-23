@@ -5,29 +5,26 @@ on:
     tags:
       - "v*"
 
-# Only runs on tag push - completely isolated from PRs
 permissions:
   contents: write
   packages: write
 
 jobs:
-  release:
+  test:
     runs-on: ubuntu-latest
-    # Extra guard: only on main repo
     if: github.repository == 'matanbaruch/amplifi-alien-exporter'
-
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m unittest discover tests/ -v
 
-      - name: Extract version
-        id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-
-      - name: Run tests before release
-        run: python -m unittest discover tests/ -v
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+  build-amd64:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -36,20 +33,97 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Extract version
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Build and push amd64
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: |
-            ghcr.io/matanbaruch/amplifi-alien-exporter:${{ steps.version.outputs.VERSION }}
-            ghcr.io/matanbaruch/amplifi-alien-exporter:latest
+          platforms: linux/amd64
+          tags: ghcr.io/matanbaruch/amplifi-alien-exporter:${{ steps.version.outputs.VERSION }}-amd64
           labels: |
             org.opencontainers.image.source=https://github.com/matanbaruch/amplifi-alien-exporter
             org.opencontainers.image.version=${{ steps.version.outputs.VERSION }}
+
+  build-arm64:
+    needs: test
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract version
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Build and push arm64
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          platforms: linux/arm64
+          tags: ghcr.io/matanbaruch/amplifi-alien-exporter:${{ steps.version.outputs.VERSION }}-arm64
+          labels: |
+            org.opencontainers.image.source=https://github.com/matanbaruch/amplifi-alien-exporter
+            org.opencontainers.image.version=${{ steps.version.outputs.VERSION }}
+
+  manifest:
+    needs: [build-amd64, build-arm64]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract version
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Create and push manifest
+        run: |
+          VERSION=${{ steps.version.outputs.VERSION }}
+          IMAGE=ghcr.io/matanbaruch/amplifi-alien-exporter
+
+          docker buildx imagetools create \
+            --tag ${IMAGE}:${VERSION} \
+            --tag ${IMAGE}:latest \
+            ${IMAGE}:${VERSION}-amd64 \
+            ${IMAGE}:${VERSION}-arm64
+
+      - name: Inspect manifest
+        run: |
+          docker buildx imagetools inspect ghcr.io/matanbaruch/amplifi-alien-exporter:${{ steps.version.outputs.VERSION }}
+
+  github-release:
+    needs: manifest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
           name: "v${{ steps.version.outputs.VERSION }}"
+          body: |
+            ## Docker Images
+
+            ```bash
+            # Multi-arch (amd64 + arm64)
+            docker pull ghcr.io/matanbaruch/amplifi-alien-exporter:${{ github.ref_name }}
+            docker pull ghcr.io/matanbaruch/amplifi-alien-exporter:latest
+            ```
+        env:
+          VERSION: ${{ github.ref_name }}
