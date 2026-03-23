@@ -59,6 +59,21 @@ A Prometheus exporter for **AmpliFi Alien** routers. Scrapes the AmpliFi web int
 
 ## Quick Start
 
+### Pip Install (GitHub Packages)
+
+```bash
+# Install from GitHub Packages (requires authentication)
+pip install amplifi-alien-exporter \
+  --index-url https://<USERNAME>:<TOKEN>@pypi.pkg.github.com/matanbaruch/simple/
+
+# Run the exporter
+export AMPLIFI_ROUTER_IP=192.168.1.1
+export AMPLIFI_PASSWORD=your-router-password
+amplifi-exporter
+```
+
+> **Note**: Installing from GitHub Packages requires authentication. See [docs/INSTALL_FROM_GITHUB.md](docs/INSTALL_FROM_GITHUB.md) for detailed authentication instructions.
+
 ### Docker (recommended)
 
 ```bash
