@@ -43,7 +43,7 @@ import urllib.error
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
-VERSION = "1.0.2"
+VERSION = "1.0.3"
 
 # Config from env or defaults
 ROUTER_IP = os.environ.get("AMPLIFI_ROUTER_IP", "192.168.1.1")
